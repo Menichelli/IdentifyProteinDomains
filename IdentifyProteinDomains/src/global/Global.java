@@ -25,8 +25,6 @@ public class Global {
 	public static Map<String, String> MAPPING_CLUSTERID;
 	public static boolean KEEPONLYBESTPVALUE;
 	public static Proteome PROTEOME_AIMED;
-	public static boolean INCLUDEPFPTVALIDATIONS;
-	public static boolean INCLUDEPTPTVALIDATIONS;
 	public static boolean ONEMODELPERDOMAIN;
 	//BlastResultsParser
 	public static String BLAST_RESULTS_PATH;
@@ -70,8 +68,6 @@ public class Global {
 				Global.DYNAMIC_DISPLAY = Boolean.parseBoolean(props.getProperty("dynamic_display"));
 				Global.COMPUTE_FDR = Boolean.parseBoolean(props.getProperty("compute_fdr"));
 				Global.KEEPONLYBESTPVALUE = Boolean.parseBoolean(props.getProperty("keep_only_best_Pvalue"));
-				Global.INCLUDEPFPTVALIDATIONS = Boolean.parseBoolean(props.getProperty("include_pfpt_validations"));
-				Global.INCLUDEPTPTVALIDATIONS = Boolean.parseBoolean(props.getProperty("include_ptpt_validations"));
 				Global.ONEMODELPERDOMAIN = Boolean.parseBoolean(props.getProperty("one_model_per_domain"));
 				Global.R_SCRIPT_PATH = props.getProperty("r_script_path");
 				if(!new File(Global.R_SCRIPT_PATH).exists()) throw new IOException("R script file not found.");
@@ -104,13 +100,11 @@ public class Global {
 				
 				if(Boolean.parseBoolean(props.getProperty("print_options"))) {
 					System.out.println("***\nUsing options:\n");
-					System.out.println("Keep only best Pvalue: "+KEEPONLYBESTPVALUE);
 					System.out.println("Min nb sequences in commom: "+NB_SEQ_INTERSECT);
-					System.out.println("Include Pfam validations : "+INCLUDEPFPTVALIDATIONS);
-					System.out.println("Include cross validations : "+INCLUDEPTPTVALIDATIONS);
 					System.out.println("Min domain size : "+SIZE_HITS_MIN);
 					System.out.println("Min nb hits : "+NUMBER_OF_HITS_MIN);
 					System.out.println("Hit min cover rate with domain : "+OVERLAP_RATE_MIN);
+					System.out.println("Keep only best Pvalue: "+KEEPONLYBESTPVALUE);
 					System.out.println("One model per domain : "+ONEMODELPERDOMAIN);
 					System.out.println("***");
 				}

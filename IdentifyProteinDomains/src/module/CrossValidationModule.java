@@ -13,8 +13,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import model.BlastHit;
-import model.CouplePfamPutative;
-import model.PfamFamily;
+import model.CouplePutativePutative;
 import model.PutativeDomain;
 import model.ValidatedDomain;
 import tools.Collection;
@@ -23,7 +22,6 @@ import tools.CoupleGenerator;
 import tools.HitsGathering;
 import tools.PutativeShuffler;
 import tools.parser.BlastResultsParser;
-import tools.parser.PfamParser;
 import tools.printer.FastaPrinter;
 import tools.printer.StatsPrinter;
 
@@ -31,23 +29,13 @@ import tools.printer.StatsPrinter;
  * @author christophe
  *
  */
-public class PfamValidationModule extends AbstractValidationModule {
-
-	private final static double hitsEvalueMax = 1e-2;
-
-	@Override
+public class CrossValidationModule extends AbstractValidationModule {
+	
+	private final static double hitsEvalueMax = 1e-5;
+	
 	public void run() {
 		try {
-			//Step 1: Recuperer tous les Pfam
-			if(Global.VERBOSE) System.out.println("Parsing Pfam families...");
-			Set<PfamFamily> pfamFamilies = PfamParser.getFamilies();
-			Map<String,PfamFamily> mapIdPfam = new HashMap<String, PfamFamily>();
-			for(PfamFamily pf : pfamFamilies) {
-				mapIdPfam.put(pf.getFamilyName(), pf);
-			}
-			if(Global.VERBOSE) System.out.println("Found "+pfamFamilies.size()+" different families.");
-
-			//Step 2: Recuperer tous les hits avec une bonne p-valeur
+			//Step 1: Recuperer tous les hits avec une bonne p-valeur
 			if(Global.VERBOSE) System.out.println("Parsing Blast results...");
 			Map<String,List<BlastHit>> hitsByProt = BlastResultsParser.getHitsByProt(hitsEvalueMax);
 			if(Global.VERBOSE) {
@@ -57,7 +45,7 @@ public class PfamValidationModule extends AbstractValidationModule {
 				}
 				System.out.println("Found "+nbhit+" valid hits on "+hitsByProt.keySet().size()+" different proteins (max evalue: "+hitsEvalueMax+").");
 			}
-			
+
 			//Step 3: Construire tous les domaines potentiels
 			if(Global.VERBOSE) System.out.println("Gathering putative domains...");
 			Map<String,Set<PutativeDomain>> putativeDomainsByProt = new HashMap<String, Set<PutativeDomain>>();
@@ -98,19 +86,22 @@ public class PfamValidationModule extends AbstractValidationModule {
 			int nbCouplesTotal = 0, nbCouplesRetained = 0;
 			int nbProtTreated = 0;
 			for(String protName : putativeDomainsByProt.keySet()) {
-				Set<CouplePfamPutative> couples = CoupleGenerator.getCouplePfamPutative(putativeDomainsByProt.get(protName), pfamFamilies);
+				Set<CouplePutativePutative> couples = CoupleGenerator.getCouplePutativePutative(putativeDomainsByProt.get(protName));
 				nbCouplesTotal+=couples.size();
-				for(CouplePfamPutative couple : couples) {
-					String pfamFamilyName = couple.getPfam().getFamilyName();
-					String putativeDomainIdentifier = couple.getPutative().getIdentifier();
-					int nbProtPfam = couple.getPfam().getAllProteinNames().size();
-					Set<String> protsCoveringThePutativeDomain = couple.getPutative().getProteinsCoveringResidue(couple.getPutative().getBestPosition());
-					int nbProtPutativeDomain = protsCoveringThePutativeDomain.size();
-					int nbProtIntersec = Collection.intersectionSize(couple.getPfam().getAllProteinNames(), protsCoveringThePutativeDomain);
+				for(CouplePutativePutative couple : couples) {
+					String putativeDomainIdentifier1 = couple.getPutative1().getIdentifier();
+					String putativeDomainIdentifier2 = couple.getPutative2().getIdentifier();
+					
+					Set<String> protsCoveringThePutativeDomain1 = couple.getPutative1().getProteinsCoveringResidue(couple.getPutative1().getBestPosition());
+					int nbProtPutativeDomain1 = protsCoveringThePutativeDomain1.size();
+					Set<String> protsCoveringThePutativeDomain2 = couple.getPutative2().getProteinsCoveringResidue(couple.getPutative2().getBestPosition());
+					int nbProtPutativeDomain2 = protsCoveringThePutativeDomain2.size();
 
+					int nbProtIntersec = Collection.intersectionSize(protsCoveringThePutativeDomain1, protsCoveringThePutativeDomain2);
+					
 					if(nbProtIntersec >= Global.NB_SEQ_INTERSECT) {
 						nbCouplesRetained++;
-						StatsPrinter.getInstance(Global.STATS_PFPT_PATH).addEntry(pfamFamilyName, putativeDomainIdentifier, nbProtPfam, nbProtPutativeDomain, nbProtIntersec);
+						StatsPrinter.getInstance(Global.STATS_PTPT_PATH).addEntry(putativeDomainIdentifier1, putativeDomainIdentifier2, nbProtPutativeDomain1, nbProtPutativeDomain2, nbProtIntersec);
 					}
 				}
 				nbProtTreated++;
@@ -118,11 +109,11 @@ public class PfamValidationModule extends AbstractValidationModule {
 			}
 			if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.println();
 			StatsPrinter.getInstance(Global.STATS_PFPT_PATH).close();
-			if(Global.VERBOSE) System.out.println("Generated "+nbCouplesTotal+" couples Pfam-Putative. "+nbCouplesRetained+" couples with at least "+Global.NB_SEQ_INTERSECT+" proteins in common.");
+			if(Global.VERBOSE) System.out.println("Generated "+nbCouplesTotal+" couples Putative-Putative. "+nbCouplesRetained+" couples with at least "+Global.NB_SEQ_INTERSECT+" proteins in common.");
 
 			//Step 5: Tester le score de cooc et garder les meilleurs
 			if(Global.VERBOSE) System.out.print("Computing coocurrence scores...");
-			Set<ValidatedDomain> validatedDomains = CoocScoringModule.compute(Global.STATS_PFPT_PATH, Global.R_RESULTS_PFPT_PATH);
+			Set<ValidatedDomain> validatedDomains = CoocScoringModule.compute(Global.STATS_PTPT_PATH, Global.R_RESULTS_PTPT_PATH);
 			if(Global.VERBOSE) System.out.println("done.");
 			if(Global.KEEPONLYBESTPVALUE) {
 				Map<String,ValidatedDomain> keepBestPvalue = new HashMap<String, ValidatedDomain>();
@@ -142,68 +133,76 @@ public class PfamValidationModule extends AbstractValidationModule {
 					}
 				}
 			}
-			
+
 			//Step 6: Print le modele de chaque validation
 			if(Global.VERBOSE) System.out.print("Initializing the FastaPrinter...");
 			Set<String> initSet = new HashSet<String>();
 			for(ValidatedDomain vd : validatedDomains) {
-				initSet.addAll(mapIdPfam.get(vd.getIdentifierValidatingDomain()).getAllProteinNames());
+				for(BlastHit bh : mapIdPutativeDomain.get(vd.getIdentifierValidatingDomain()).getBlastHits()) {
+					initSet.add(bh.getSubjectName()+"_"+bh.getSubjectSpecies());
+				}
 			}
 			FastaPrinter.getInstance().init(initSet);
 			if(Global.VERBOSE) System.out.println("Ready.");
-			
+
 			if(Global.VERBOSE) System.out.println("Printing...");
 			int domPrinted = 0;
+			Set<String> allowedProteins = new HashSet<String>();
 			for(ValidatedDomain vd : validatedDomains) {
-				FastaPrinter.getInstance().printFasta(mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()), mapIdPfam.get(vd.getIdentifierValidatingDomain()).getAllProteinNames());
+				allowedProteins.clear();
+				for(BlastHit bh : mapIdPutativeDomain.get(vd.getIdentifierValidatingDomain()).getBlastHits()) {
+					allowedProteins.add(bh.getSubjectName()+"_"+bh.getSubjectSpecies());
+				}
+				FastaPrinter.getInstance().printFasta(mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()), allowedProteins);
 				domPrinted++;
 				if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.print("> "+domPrinted);
 			}
 			if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.println();
 			if(Global.VERBOSE) System.out.println("Printing done.");
-			
+
 			//Step 7: Estimer le fdr
-			estimateFDR(putativeDomainsByProt, pfamFamilies, validatedDomains.size());
-			
+			estimateFDR(putativeDomainsByProt, validatedDomains.size());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
-	private double estimateFDR(final Map<String,Set<PutativeDomain>> putativeDomainsByProt, final Set<PfamFamily> pfamFamilies, int nbCertificationObtained) throws Exception {
+
+	private double estimateFDR(final Map<String,Set<PutativeDomain>> putativeDomainsByProt, int nbCertificationObtained) throws Exception {
 		double totalCertification = 0;
 		int max=Global.FDR_NB_REPEATS,percent=0;
 		long totalTimeElapsed = 0;
 		long currentStartTime,meanTimeByRun,timeRemaining;
-		
+
 		if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.print("progress: "+percent+"%, time remaining about: estimating...\r");
-		
+
 		for(int nbRepeats = 0; nbRepeats < max; nbRepeats++) {
 			currentStartTime = System.currentTimeMillis();
-			
+
 			//Step 1: Shuffle les putative domains
 			Map<String,Set<PutativeDomain>> putativeDomainsByProtShuffled = PutativeShuffler.getInstance().shuffle(putativeDomainsByProt);
 
 			//Step 2: Genere tous les couples Pfam-PutativeDomain et envoie les info au StatsPrinter
 			boolean atLeastOneEntry = false;
 			for(String protName : putativeDomainsByProtShuffled.keySet()) {
-				Set<CouplePfamPutative> couples = CoupleGenerator.getCouplePfamPutative(putativeDomainsByProtShuffled.get(protName), pfamFamilies);
-				for(CouplePfamPutative couple : couples) {
-					String pfamFamilyName = couple.getPfam().getFamilyName();
-					String putativeDomainIdentifier = couple.getPutative().getIdentifier();
-					int nbProtPfam = couple.getPfam().getAllProteinNames().size();
-					Set<String> protsCoveringThePutativeDomain = couple.getPutative().getProteinsCoveringResidue(couple.getPutative().getBestPosition());
-					int nbProtPutativeDomain = protsCoveringThePutativeDomain.size();
-					int nbProtIntersec = Collection.intersectionSize(couple.getPfam().getAllProteinNames(), protsCoveringThePutativeDomain);
+				Set<CouplePutativePutative> couples = CoupleGenerator.getCouplePutativePutative(putativeDomainsByProtShuffled.get(protName));
+				for(CouplePutativePutative couple : couples) {
+					String putativeDomainIdentifier1 = couple.getPutative1().getIdentifier();
+					String putativeDomainIdentifier2 = couple.getPutative2().getIdentifier();
+					
+					Set<String> protsCoveringThePutativeDomain1 = couple.getPutative1().getProteinsCoveringResidue(couple.getPutative1().getBestPosition());
+					int nbProtPutativeDomain1 = protsCoveringThePutativeDomain1.size();
+					Set<String> protsCoveringThePutativeDomain2 = couple.getPutative2().getProteinsCoveringResidue(couple.getPutative2().getBestPosition());
+					int nbProtPutativeDomain2 = protsCoveringThePutativeDomain2.size();
 
+					int nbProtIntersec = Collection.intersectionSize(protsCoveringThePutativeDomain1, protsCoveringThePutativeDomain2);
+					
 					if(nbProtIntersec >= Global.NB_SEQ_INTERSECT) {
-						atLeastOneEntry|=true;
-						StatsPrinter.getInstance(Global.FDR_TMP_PATH+"1").addEntry(pfamFamilyName, putativeDomainIdentifier, nbProtPfam, nbProtPutativeDomain, nbProtIntersec);
+						StatsPrinter.getInstance(Global.FDR_TMP_PATH+"1").addEntry(putativeDomainIdentifier1, putativeDomainIdentifier2, nbProtPutativeDomain1, nbProtPutativeDomain2, nbProtIntersec);
 					}
 				}
 			}
 			StatsPrinter.getInstance(Global.FDR_TMP_PATH+"1").close();
-			
+
 			int currentCertification = 0;
 			if(atLeastOneEntry) {
 				//Step 3: run R
@@ -212,16 +211,16 @@ public class PfamValidationModule extends AbstractValidationModule {
 				for(ValidatedDomain v : validatedDomains) {
 					vDomains.add(v.getIdentifierValidatedDomain());
 				}
-				//currentCertification = vDomains.size(); //compte 1 pour chaque domaine
-				currentCertification = validatedDomains.size(); //compte 1 pour chaque validations
+				//currentCertification = vDomains.size();
+				currentCertification = validatedDomains.size();
 			}
 			totalCertification += currentCertification;
-			
+
 			totalTimeElapsed += System.currentTimeMillis() - currentStartTime;
 			meanTimeByRun = totalTimeElapsed / (nbRepeats+1);
-			
+
 			timeRemaining = (max-(nbRepeats+1)) * meanTimeByRun;
-			
+
 			percent = (int)((double)((double)(nbRepeats+1)/(double)max)*100);
 			String s = String.format("%d min, %d sec",
 					TimeUnit.MILLISECONDS.toMinutes(timeRemaining),
@@ -230,7 +229,7 @@ public class PfamValidationModule extends AbstractValidationModule {
 					);
 			if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.print("progress: "+percent+"%, time remaining about: "+s+"                           \r");
 		}
-		
+
 		double fdr = totalCertification/Global.FDR_NB_REPEATS/nbCertificationObtained;
 		if(Global.VERBOSE) {
 			String s = String.format("%d min, %d sec",
@@ -246,7 +245,5 @@ public class PfamValidationModule extends AbstractValidationModule {
 
 		return fdr;
 	}
-
-
 
 }

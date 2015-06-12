@@ -1,9 +1,8 @@
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import tools.parser.PfamParser;
 import tools.parser.ProteomeParser;
-import model.PfamFamily;
+import module.AbstractValidationModule;
+import module.CrossValidationModule;
 import module.PfamValidationModule;
 import global.Global;
 
@@ -15,28 +14,33 @@ import global.Global;
  * @author christophe
  */
 public class Main {
-	
-	public static void main(String[] args) {
+
+	public static void main(String[] args) throws Exception {
 		long startTime = System.currentTimeMillis();
-		
+
 		//Step 1: Initialize properties
 		if(args.length==1) {
 			Global.PATHPROPERTIES = args[0];
 		} else Global.PATHPROPERTIES = "ppblast.properties";
-		System.out.print("Initialization...");
+		System.out.println("Initialization...");
 		Global.init();
 		Global.PROTEOME_AIMED = ProteomeParser.getProteome();
-		System.out.println(" done.");
-		
+		System.out.println("Init done.");
 		if(Global.VERBOSE) System.out.println("Found "+Global.PROTEOME_AIMED.getProteins().size()+" proteins in the proteome.");
-		
+
 		//Step 2: Run PfamValidation
-		if(Global.VERBOSE) System.out.println("Starting PfamValidationModule...");
-		new PfamValidationModule().start();
-		if(Global.VERBOSE) System.out.println("PfamValidationModule done.");
+		if(Global.VERBOSE) System.out.println("***Starting PfamValidationModule...");
+		AbstractValidationModule m1 = new PfamValidationModule();
+		m1.start();
+		m1.join();
+		if(Global.VERBOSE) System.out.println("***PfamValidationModule done.");
 		
 		//Step 3: Run CrossValidation
-		//TODO
+		if(Global.VERBOSE) System.out.println("***Starting CrossValidationModule...");
+		AbstractValidationModule m2 = new CrossValidationModule();
+		m2.start();
+		m2.join();
+		if(Global.VERBOSE) System.out.println("***CrossValidationModule done.");
 		
 		//Final step: Print execution time
 		long stopTime = System.currentTimeMillis();

@@ -35,7 +35,7 @@ public class BlastResultsParser {
 
 		List<BlastHit> tmp;
 		for(BlastHit bh : hits) {
-			if(bh.geteValue() < evalue_max) {
+			if(bh.geteValue() <= evalue_max) {
 				tmp = ret.get(bh.getQueryName()+"_"+bh.getQuerySpecies());
 				if(tmp==null) tmp = new ArrayList<BlastHit>();
 				tmp.add(bh);
