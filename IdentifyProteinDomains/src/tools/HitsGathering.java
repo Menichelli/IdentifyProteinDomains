@@ -6,6 +6,7 @@ import filter.impl.BoundShrinker;
 import filter.impl.LowComplexityFilter;
 import filter.impl.TooFewHitsFilter;
 import filter.impl.TooLongHitsFilter;
+import filter.impl.TooShortHitsFilter;
 import filter.impl.TooSmallDomainFilter;
 import global.Global;
 
@@ -78,6 +79,7 @@ public class HitsGathering {
 		pDomains = FilterFacade.applyFilter(TooFewHitsFilter.class, pDomains);
 		
 		//raccourci les bornes, verifie si les hits sont encore bien dedans
+		pDomains = FilterFacade.applyFilter(TooShortHitsFilter.class, pDomains);
 		pDomains = FilterFacade.applyFilter(TooLongHitsFilter.class, pDomains);
 		pDomains = FilterFacade.applyFilter(TooFewHitsFilter.class, pDomains);
 		pDomains = FilterFacade.applyFilter(BoundShrinker.class, pDomains);
