@@ -202,6 +202,7 @@ public class CrossValidationModule extends AbstractValidationModule {
 					int nbProtIntersec = Collection.intersectionSize(protsCoveringThePutativeDomain1, protsCoveringThePutativeDomain2);
 					
 					if(nbProtIntersec >= Global.NB_SEQ_INTERSECT) {
+						atLeastOneEntry|=true;
 						StatsPrinter.getInstance(Global.FDR_TMP_PATH+"1").addEntry(putativeDomainIdentifier1, putativeDomainIdentifier2, nbProtPutativeDomain1, nbProtPutativeDomain2, nbProtIntersec);
 					}
 				}

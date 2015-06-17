@@ -34,7 +34,7 @@ public class Main {
 		AbstractValidationModule m1 = new PfamValidationModule();
 		m1.start();
 		m1.join();
-		if(Global.VERBOSE) System.out.println("***PfamValidationModule done.");
+		if(Global.VERBOSE) System.out.println("***PfamValidationModule done.\n");
 		
 		//Step 3: Run CrossValidation
 		if(Global.VERBOSE) System.out.println("***Starting CrossValidationModule...");
