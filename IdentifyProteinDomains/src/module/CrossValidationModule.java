@@ -22,6 +22,7 @@ import tools.CoupleGenerator;
 import tools.HitsGathering;
 import tools.PutativeShuffler;
 import tools.parser.BlastResultsParser;
+import tools.printer.ConservationStatsPrinter;
 import tools.printer.FastaPrinter;
 import tools.printer.StatsPrinter;
 
@@ -31,7 +32,7 @@ import tools.printer.StatsPrinter;
  */
 public class CrossValidationModule extends AbstractValidationModule {
 	
-	private final static double hitsEvalueMax = 1e-5;
+	private final static double hitsEvalueMax = 1e-2;
 	
 	public void run() {
 		try {
@@ -108,7 +109,7 @@ public class CrossValidationModule extends AbstractValidationModule {
 				if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.print("\r"+nbProtTreated+"/"+putativeDomainsByProt.keySet().size()+" proteins tested.");
 			}
 			if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.println();
-			StatsPrinter.getInstance(Global.STATS_PFPT_PATH).close();
+			StatsPrinter.getInstance(Global.STATS_PTPT_PATH).close();
 			if(Global.VERBOSE) System.out.println("Generated "+nbCouplesTotal+" couples Putative-Putative. "+nbCouplesRetained+" couples with at least "+Global.NB_SEQ_INTERSECT+" proteins in common.");
 
 			//Step 5: Tester le score de cooc et garder les meilleurs
@@ -147,20 +148,24 @@ public class CrossValidationModule extends AbstractValidationModule {
 
 			if(Global.VERBOSE) System.out.println("Printing...");
 			int domPrinted = 0;
+			int nbPrinted;
 			Set<String> allowedProteins = new HashSet<String>();
 			for(ValidatedDomain vd : validatedDomains) {
 				allowedProteins.clear();
 				for(BlastHit bh : mapIdPutativeDomain.get(vd.getIdentifierValidatingDomain()).getBlastHits()) {
 					allowedProteins.add(bh.getSubjectName()+"_"+bh.getSubjectSpecies());
 				}
-				FastaPrinter.getInstance().printFasta(mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()), allowedProteins);
+				nbPrinted = FastaPrinter.getInstance().printFasta(mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()), allowedProteins);
+				ConservationStatsPrinter.getInstance("CrossValidationConservation.dat").addEntry(nbPrinted, mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()).getBlastHits().size());
 				domPrinted++;
-				if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.print("> "+domPrinted);
+				if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.print("\r> "+domPrinted);
 			}
+			ConservationStatsPrinter.getInstance("CrossValidationConservation.dat").close();
 			if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.println();
 			if(Global.VERBOSE) System.out.println("Printing done.");
 
 			//Step 7: Estimer le fdr
+			if(Global.VERBOSE) System.out.println("Computing FDR...");
 			estimateFDR(putativeDomainsByProt, validatedDomains.size());
 		} catch (Exception e) {
 			e.printStackTrace();

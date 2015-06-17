@@ -32,7 +32,7 @@ public class TooShortHitsFilter implements Ifilter {
 		domain.setBlastHits(new HashSet<BlastHit>());
 		
 		for(BlastHit hit : hits) {
-			if((hit.getqEnd()-hit.getqStart()) >= (domain.getDomainEnd()-domain.getDomainStart()*.5)) domain.addBlastHit(hit);
+			if((hit.getqEnd()-hit.getqStart()) >= ((domain.getDomainEnd()-domain.getDomainStart())*.3)) domain.addBlastHit(hit);
 		}
 		
 		ret = domain;

@@ -46,7 +46,9 @@ public class FastaPrinter {
 		FastaPrinter.proteins.putAll(RefProtParser.getProteinSequences(proteins));
 	}
 
-	public void printFasta(PutativeDomain domain, Set<String> allowedProteins) throws Exception {
+	public int printFasta(PutativeDomain domain, Set<String> allowedProteins) throws Exception {
+		int ret = 0;
+		
 		Set<BlastHit> hits = domain.getHitsCoveringResidue(domain.getBestPosition()); //all blast hits on this domain
 		Set<BlastHit> coocshits = new HashSet<BlastHit>(); //only hits found with coocs
 
@@ -84,7 +86,8 @@ public class FastaPrinter {
 		for(String s : splitByNumber(seq, CHUNK_SIZE)) {
 			writer.append(s+"\n");
 		}
-
+		ret++;
+		
 		//print hits sequences
 		for(BlastHit bh : coocshits) {
 			writer.append(">"+bh.getSubjectName()+"_"+bh.getSubjectSpecies()+"/"+bh.getsStart()+"-"+bh.getsEnd()+"\n");
@@ -92,9 +95,11 @@ public class FastaPrinter {
 			for(String s : splitByNumber(seq, CHUNK_SIZE)) {
 				writer.append(s+"\n");
 			}
+			ret++;
 		}
 
 		writer.close();
+		return ret;
 	}
 
 	/**

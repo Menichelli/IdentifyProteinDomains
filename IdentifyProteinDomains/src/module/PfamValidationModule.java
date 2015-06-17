@@ -24,6 +24,7 @@ import tools.HitsGathering;
 import tools.PutativeShuffler;
 import tools.parser.BlastResultsParser;
 import tools.parser.PfamParser;
+import tools.printer.ConservationStatsPrinter;
 import tools.printer.FastaPrinter;
 import tools.printer.StatsPrinter;
 
@@ -154,15 +155,19 @@ public class PfamValidationModule extends AbstractValidationModule {
 			
 			if(Global.VERBOSE) System.out.println("Printing...");
 			int domPrinted = 0;
+			int nbPrinted;
 			for(ValidatedDomain vd : validatedDomains) {
-				FastaPrinter.getInstance().printFasta(mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()), mapIdPfam.get(vd.getIdentifierValidatingDomain()).getAllProteinNames());
+				nbPrinted = FastaPrinter.getInstance().printFasta(mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()), mapIdPfam.get(vd.getIdentifierValidatingDomain()).getAllProteinNames());
+				ConservationStatsPrinter.getInstance("PfamValidationConservation.dat").addEntry(nbPrinted, mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()).getBlastHits().size());
 				domPrinted++;
-				if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.print("> "+domPrinted);
+				if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.print("\r> "+domPrinted);
 			}
+			ConservationStatsPrinter.getInstance("PfamValidationConservation.dat").close();
 			if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.println();
 			if(Global.VERBOSE) System.out.println("Printing done.");
 			
 			//Step 7: Estimer le fdr
+			if(Global.VERBOSE) System.out.println("Computing FDR...");
 			estimateFDR(putativeDomainsByProt, pfamFamilies, validatedDomains.size());
 			
 		} catch (Exception e) {

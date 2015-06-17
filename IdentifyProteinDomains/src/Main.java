@@ -22,11 +22,12 @@ public class Main {
 		if(args.length==1) {
 			Global.PATHPROPERTIES = args[0];
 		} else Global.PATHPROPERTIES = "ppblast.properties";
-		System.out.println("Initialization...");
+		if(Global.VERBOSE) System.out.println("Initialization...");
 		Global.init();
 		Global.PROTEOME_AIMED = ProteomeParser.getProteome();
-		System.out.println("Init done.");
+		if(Global.VERBOSE) System.out.println("Init done.");
 		if(Global.VERBOSE) System.out.println("Found "+Global.PROTEOME_AIMED.getProteins().size()+" proteins in the proteome.");
+		if(Global.VERBOSE) System.out.println();
 
 		//Step 2: Run PfamValidation
 		if(Global.VERBOSE) System.out.println("***Starting PfamValidationModule...");
