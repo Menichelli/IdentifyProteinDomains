@@ -156,7 +156,7 @@ public class CrossValidationModule extends AbstractValidationModule {
 					allowedProteins.add(bh.getSubjectName()+"_"+bh.getSubjectSpecies());
 				}
 				nbPrinted = FastaPrinter.getInstance().printFasta(mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()), allowedProteins);
-				ConservationStatsPrinter.getInstance("CrossValidationConservation.dat").addEntry(nbPrinted, mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()).getBlastHits().size());
+				ConservationStatsPrinter.getInstance("CrossValidationConservation.dat").addEntry(nbPrinted-1, mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()).getBlastHits().size());
 				domPrinted++;
 				if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.print("\r> "+domPrinted);
 			}
@@ -220,6 +220,7 @@ public class CrossValidationModule extends AbstractValidationModule {
 				//currentCertification = vDomains.size();
 				currentCertification = validatedDomains.size();
 			}
+			
 			totalCertification += currentCertification;
 
 			totalTimeElapsed += System.currentTimeMillis() - currentStartTime;

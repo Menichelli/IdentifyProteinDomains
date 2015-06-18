@@ -158,7 +158,7 @@ public class PfamValidationModule extends AbstractValidationModule {
 			int nbPrinted;
 			for(ValidatedDomain vd : validatedDomains) {
 				nbPrinted = FastaPrinter.getInstance().printFasta(mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()), mapIdPfam.get(vd.getIdentifierValidatingDomain()).getAllProteinNames());
-				ConservationStatsPrinter.getInstance("PfamValidationConservation.dat").addEntry(nbPrinted, mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()).getBlastHits().size());
+				ConservationStatsPrinter.getInstance("PfamValidationConservation.dat").addEntry(nbPrinted-1, mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()).getBlastHits().size()); //-1 pour la sequence de Plasmodium
 				domPrinted++;
 				if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.print("\r> "+domPrinted);
 			}
@@ -188,7 +188,7 @@ public class PfamValidationModule extends AbstractValidationModule {
 			
 			//Step 1: Shuffle les putative domains
 			Map<String,Set<PutativeDomain>> putativeDomainsByProtShuffled = PutativeShuffler.getInstance().shuffle(putativeDomainsByProt);
-
+			
 			//Step 2: Genere tous les couples Pfam-PutativeDomain et envoie les info au StatsPrinter
 			boolean atLeastOneEntry = false;
 			for(String protName : putativeDomainsByProtShuffled.keySet()) {
@@ -200,7 +200,7 @@ public class PfamValidationModule extends AbstractValidationModule {
 					Set<String> protsCoveringThePutativeDomain = couple.getPutative().getProteinsCoveringResidue(couple.getPutative().getBestPosition());
 					int nbProtPutativeDomain = protsCoveringThePutativeDomain.size();
 					int nbProtIntersec = Collection.intersectionSize(couple.getPfam().getAllProteinNames(), protsCoveringThePutativeDomain);
-
+					
 					if(nbProtIntersec >= Global.NB_SEQ_INTERSECT) {
 						atLeastOneEntry|=true;
 						StatsPrinter.getInstance(Global.FDR_TMP_PATH+"1").addEntry(pfamFamilyName, putativeDomainIdentifier, nbProtPfam, nbProtPutativeDomain, nbProtIntersec);
@@ -251,7 +251,5 @@ public class PfamValidationModule extends AbstractValidationModule {
 
 		return fdr;
 	}
-
-
 
 }
