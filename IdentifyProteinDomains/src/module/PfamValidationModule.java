@@ -29,7 +29,7 @@ import tools.printer.StatsPrinter;
  *
  */
 public class PfamValidationModule extends AbstractValidationModule {
-	
+
 	public PfamValidationModule(Map<String,Set<PutativeDomain>> putativeDomainsByProt, Map<String,PutativeDomain> mapIdPutativeDomain) {
 		super(putativeDomainsByProt,mapIdPutativeDomain);
 	}
@@ -98,13 +98,13 @@ public class PfamValidationModule extends AbstractValidationModule {
 					} else {
 						keepBestPvalue.put(vd.getIdentifierValidatedDomain(), vd);
 					}
-					validatedDomains.clear();
-					for(String s : keepBestPvalue.keySet()) {
-						validatedDomains.add(keepBestPvalue.get(s));
-					}
+				}
+				validatedDomains.clear();
+				for(String s : keepBestPvalue.keySet()) {
+					validatedDomains.add(keepBestPvalue.get(s));
 				}
 			}
-			
+
 			//Step 6: Print le modele de chaque validation
 			if(Global.VERBOSE) System.out.print("Initializing the FastaPrinter...");
 			Set<String> initSet = new HashSet<String>();
@@ -113,7 +113,7 @@ public class PfamValidationModule extends AbstractValidationModule {
 			}
 			FastaPrinter.getInstance().init(initSet);
 			if(Global.VERBOSE) System.out.println("Ready.");
-			
+
 			if(Global.VERBOSE) System.out.println("Printing...");
 			int domPrinted = 0;
 			int nbPrinted;
@@ -128,7 +128,7 @@ public class PfamValidationModule extends AbstractValidationModule {
 			if(Global.VERBOSE && !Global.DYNAMIC_DISPLAY) System.out.print("> "+domPrinted);
 			if(Global.VERBOSE) System.out.println();
 			if(Global.VERBOSE) System.out.println("Printing done.");
-			
+
 			//Step 7: Estimer le fdr
 			if(Global.VERBOSE) System.out.println("Computing FDR...");
 			estimateFDR(putativeDomainsByProt, pfamFamilies, validatedDomains.size());
@@ -136,21 +136,21 @@ public class PfamValidationModule extends AbstractValidationModule {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private double estimateFDR(final Map<String,Set<PutativeDomain>> putativeDomainsByProt, final Set<PfamFamily> pfamFamilies, int nbCertificationObtained) throws Exception {
 		double totalCertification = 0;
 		int max=Global.FDR_NB_REPEATS,percent=0;
 		long totalTimeElapsed = 0;
 		long currentStartTime,meanTimeByRun,timeRemaining;
-		
+
 		if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.print("progress: "+percent+"%, time remaining about: estimating...\r");
-		
+
 		for(int nbRepeats = 0; nbRepeats < max; nbRepeats++) {
 			currentStartTime = System.currentTimeMillis();
-			
+
 			//Step 1: Shuffle les putative domains
 			Map<String,Set<PutativeDomain>> putativeDomainsByProtShuffled = PutativeShuffler.getInstance().shuffle(putativeDomainsByProt);
-			
+
 			//Step 2: Genere tous les couples Pfam-PutativeDomain et envoie les info au StatsPrinter
 			boolean atLeastOneEntry = false;
 			for(String protName : putativeDomainsByProtShuffled.keySet()) {
@@ -162,7 +162,7 @@ public class PfamValidationModule extends AbstractValidationModule {
 					Set<String> protsCoveringThePutativeDomain = couple.getPutative().getProteinsCoveringResidue(couple.getPutative().getBestPosition());
 					int nbProtPutativeDomain = protsCoveringThePutativeDomain.size();
 					int nbProtIntersec = Collection.intersectionSize(couple.getPfam().getAllProteinNames(), protsCoveringThePutativeDomain);
-					
+
 					if(nbProtIntersec >= Global.NB_SEQ_INTERSECT) {
 						atLeastOneEntry|=true;
 						StatsPrinter.getInstance(Global.FDR_TMP_PATH+"1").addEntry(pfamFamilyName, putativeDomainIdentifier, nbProtPfam, nbProtPutativeDomain, nbProtIntersec);
@@ -170,7 +170,7 @@ public class PfamValidationModule extends AbstractValidationModule {
 				}
 			}
 			StatsPrinter.getInstance(Global.FDR_TMP_PATH+"1").close();
-			
+
 			int currentCertification = 0;
 			if(atLeastOneEntry) {
 				//Step 3: run R
@@ -183,12 +183,12 @@ public class PfamValidationModule extends AbstractValidationModule {
 				else currentCertification = validatedDomains.size(); //compte 1 pour chaque validations
 			}
 			totalCertification += currentCertification;
-			
+
 			totalTimeElapsed += System.currentTimeMillis() - currentStartTime;
 			meanTimeByRun = totalTimeElapsed / (nbRepeats+1);
-			
+
 			timeRemaining = (max-(nbRepeats+1)) * meanTimeByRun;
-			
+
 			percent = (int)((double)((double)(nbRepeats+1)/(double)max)*100);
 			String s = String.format("%d min, %d sec",
 					TimeUnit.MILLISECONDS.toMinutes(timeRemaining),
@@ -197,7 +197,7 @@ public class PfamValidationModule extends AbstractValidationModule {
 					);
 			if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.print("progress: "+percent+"%, time remaining about: "+s+"                           \r");
 		}
-		
+
 		double fdr = totalCertification/Global.FDR_NB_REPEATS/nbCertificationObtained;
 		if(Global.VERBOSE) {
 			String s = String.format("%d min, %d sec",

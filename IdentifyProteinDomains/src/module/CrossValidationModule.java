@@ -28,11 +28,11 @@ import tools.printer.StatsPrinter;
  *
  */
 public class CrossValidationModule extends AbstractValidationModule {
-	
+
 	public CrossValidationModule(Map<String,Set<PutativeDomain>> putativeDomainsByProt, Map<String,PutativeDomain> mapIdPutativeDomain) {
 		super(putativeDomainsByProt,mapIdPutativeDomain);
 	}
-	
+
 	public void run() {
 		try {
 			//Step 4: Construire tous les couples possibles
@@ -45,14 +45,14 @@ public class CrossValidationModule extends AbstractValidationModule {
 				for(CouplePutativePutative couple : couples) {
 					String putativeDomainIdentifier1 = couple.getPutative1().getIdentifier();
 					String putativeDomainIdentifier2 = couple.getPutative2().getIdentifier();
-					
+
 					Set<String> protsCoveringThePutativeDomain1 = couple.getPutative1().getProteinsCoveringResidue(couple.getPutative1().getBestPosition());
 					int nbProtPutativeDomain1 = protsCoveringThePutativeDomain1.size();
 					Set<String> protsCoveringThePutativeDomain2 = couple.getPutative2().getProteinsCoveringResidue(couple.getPutative2().getBestPosition());
 					int nbProtPutativeDomain2 = protsCoveringThePutativeDomain2.size();
 
 					int nbProtIntersec = Collection.intersectionSize(protsCoveringThePutativeDomain1, protsCoveringThePutativeDomain2);
-					
+
 					if(nbProtIntersec >= Global.NB_SEQ_INTERSECT) {
 						nbCouplesRetained++;
 						StatsPrinter.getInstance(Global.STATS_PTPT_PATH).addEntry(putativeDomainIdentifier1, putativeDomainIdentifier2, nbProtPutativeDomain1, nbProtPutativeDomain2, nbProtIntersec);
@@ -90,10 +90,10 @@ public class CrossValidationModule extends AbstractValidationModule {
 					} else {
 						keepBestPvalue.put(vd.getIdentifierValidatedDomain(), vd);
 					}
-					validatedDomains.clear();
-					for(String s : keepBestPvalue.keySet()) {
-						validatedDomains.add(keepBestPvalue.get(s));
-					}
+				}
+				validatedDomains.clear();
+				for(String s : keepBestPvalue.keySet()) {
+					validatedDomains.add(keepBestPvalue.get(s));
 				}
 			}
 
@@ -157,14 +157,14 @@ public class CrossValidationModule extends AbstractValidationModule {
 				for(CouplePutativePutative couple : couples) {
 					String putativeDomainIdentifier1 = couple.getPutative1().getIdentifier();
 					String putativeDomainIdentifier2 = couple.getPutative2().getIdentifier();
-					
+
 					Set<String> protsCoveringThePutativeDomain1 = couple.getPutative1().getProteinsCoveringResidue(couple.getPutative1().getBestPosition());
 					int nbProtPutativeDomain1 = protsCoveringThePutativeDomain1.size();
 					Set<String> protsCoveringThePutativeDomain2 = couple.getPutative2().getProteinsCoveringResidue(couple.getPutative2().getBestPosition());
 					int nbProtPutativeDomain2 = protsCoveringThePutativeDomain2.size();
 
 					int nbProtIntersec = Collection.intersectionSize(protsCoveringThePutativeDomain1, protsCoveringThePutativeDomain2);
-					
+
 					if(nbProtIntersec >= Global.NB_SEQ_INTERSECT) {
 						atLeastOneEntry|=true;
 						StatsPrinter.getInstance(Global.FDR_TMP_PATH+"1").addEntry(putativeDomainIdentifier1, putativeDomainIdentifier2, nbProtPutativeDomain1, nbProtPutativeDomain2, nbProtIntersec);
@@ -184,7 +184,7 @@ public class CrossValidationModule extends AbstractValidationModule {
 				if(Global.KEEPONLYBESTPVALUE) currentCertification = vDomains.size();
 				else currentCertification = validatedDomains.size();
 			}
-			
+
 			totalCertification += currentCertification;
 
 			totalTimeElapsed += System.currentTimeMillis() - currentStartTime;
