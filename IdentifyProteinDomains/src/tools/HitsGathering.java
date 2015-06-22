@@ -79,7 +79,6 @@ public class HitsGathering {
 		pDomains = FilterFacade.applyFilter(TooFewHitsFilter.class, pDomains);
 		
 		//raccourci les bornes, verifie si les hits sont encore bien dedans
-		pDomains = FilterFacade.applyFilter(TooShortHitsFilter.class, pDomains);
 		pDomains = FilterFacade.applyFilter(TooLongHitsFilter.class, pDomains);
 		pDomains = FilterFacade.applyFilter(TooFewHitsFilter.class, pDomains);
 		pDomains = FilterFacade.applyFilter(BoundShrinker.class, pDomains);
@@ -87,6 +86,10 @@ public class HitsGathering {
 		
 		//low complexity filter
 		pDomains = FilterFacade.applyFilter(LowComplexityFilter.class, pDomains);
+		
+		//too short hits filter
+		pDomains = FilterFacade.applyFilter(TooShortHitsFilter.class, pDomains);
+		pDomains = FilterFacade.applyFilter(TooFewHitsFilter.class, pDomains);
 		
 		ret.addAll(pDomains);
 		return ret;

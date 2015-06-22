@@ -14,6 +14,7 @@ public class PutativeDomain {
 	private int domainStart;
 	private int domainEnd;
 	private Set<BlastHit> blastHits;
+	private boolean hasBeenCertified;
 	
 	private final static int BEST_POSITION_BOUND_MARGIN = 10;
 
@@ -24,6 +25,7 @@ public class PutativeDomain {
 		this.domainStart = domStart;
 		this.domainEnd = domEnd;
 		this.blastHits = new HashSet<BlastHit>();
+		this.hasBeenCertified = false;
 	}
 
 	/**
@@ -168,9 +170,16 @@ public class PutativeDomain {
 		
 		return ret;
 	}
-
-
-
+	
+	public void setHasBeenCertified(boolean isCertified) throws Exception {
+		this.hasBeenCertified = isCertified;
+	}
+	
+	public boolean hasBeenCertified() {
+		return this.hasBeenCertified;
+	}
+	
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

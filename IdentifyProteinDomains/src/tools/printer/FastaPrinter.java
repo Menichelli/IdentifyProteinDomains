@@ -86,7 +86,6 @@ public class FastaPrinter {
 		for(String s : splitByNumber(seq, CHUNK_SIZE)) {
 			writer.append(s+"\n");
 		}
-		ret++;
 		
 		//print hits sequences
 		for(BlastHit bh : coocshits) {

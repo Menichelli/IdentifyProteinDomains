@@ -7,7 +7,6 @@ import global.Global;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -19,9 +18,7 @@ import model.ValidatedDomain;
 import tools.Collection;
 import tools.CoocScoringModule;
 import tools.CoupleGenerator;
-import tools.HitsGathering;
 import tools.PutativeShuffler;
-import tools.parser.BlastResultsParser;
 import tools.printer.ConservationStatsPrinter;
 import tools.printer.FastaPrinter;
 import tools.printer.StatsPrinter;
@@ -32,56 +29,12 @@ import tools.printer.StatsPrinter;
  */
 public class CrossValidationModule extends AbstractValidationModule {
 	
-	private final static double hitsEvalueMax = 1e-2;
+	public CrossValidationModule(Map<String,Set<PutativeDomain>> putativeDomainsByProt, Map<String,PutativeDomain> mapIdPutativeDomain) {
+		super(putativeDomainsByProt,mapIdPutativeDomain);
+	}
 	
 	public void run() {
 		try {
-			//Step 1: Recuperer tous les hits avec une bonne p-valeur
-			if(Global.VERBOSE) System.out.println("Parsing Blast results...");
-			Map<String,List<BlastHit>> hitsByProt = BlastResultsParser.getHitsByProt(hitsEvalueMax);
-			if(Global.VERBOSE) {
-				int nbhit = 0;
-				for(String s : hitsByProt.keySet()) {
-					nbhit += hitsByProt.get(s).size();
-				}
-				System.out.println("Found "+nbhit+" valid hits on "+hitsByProt.keySet().size()+" different proteins (max evalue: "+hitsEvalueMax+").");
-			}
-
-			//Step 3: Construire tous les domaines potentiels
-			if(Global.VERBOSE) System.out.println("Gathering putative domains...");
-			Map<String,Set<PutativeDomain>> putativeDomainsByProt = new HashMap<String, Set<PutativeDomain>>();
-			Set<PutativeDomain> tmpset,tmp;
-			for(String protName : hitsByProt.keySet()) {
-				List<BlastHit> hitsOnThisProt = hitsByProt.get(protName);
-				while(true) { //break si le gatherHits ne trouve pas de putative
-					tmpset = HitsGathering.gatherHits(hitsOnThisProt,Global.PROTEOME_AIMED.getProteinByName(protName),putativeDomainsByProt.get(protName));
-					if(!tmpset.isEmpty()) {
-						tmp = putativeDomainsByProt.get(protName);
-						if(tmp==null) tmp = new HashSet<PutativeDomain>();
-						tmp.addAll(tmpset);
-						putativeDomainsByProt.put(protName,tmp);
-						for(PutativeDomain pdom : tmpset) { //sur chaque domaine trouve
-							for(BlastHit h : pdom.getBlastHits()) { //sur chacun de ses hits
-								hitsOnThisProt.remove(h); //pour ne pas reutiliser le meme hit deux fois
-							}
-						}
-					} else break;
-				}
-			}
-			if(Global.VERBOSE) {
-				int nbhit = 0;
-				for(String s : putativeDomainsByProt.keySet()) {
-					nbhit += putativeDomainsByProt.get(s).size();
-				}
-				System.out.println("Found "+nbhit+" putative domains on "+putativeDomainsByProt.keySet().size()+" different proteins.");
-			}
-			Map<String,PutativeDomain> mapIdPutativeDomain = new HashMap<String, PutativeDomain>();
-			for(String s : putativeDomainsByProt.keySet()) {
-				for(PutativeDomain pd : putativeDomainsByProt.get(s)) {
-					mapIdPutativeDomain.put(pd.getIdentifier(), pd);
-				}
-			}
-
 			//Step 4: Construire tous les couples possibles
 			if(Global.VERBOSE) System.out.println("Testing all couples...");
 			int nbCouplesTotal = 0, nbCouplesRetained = 0;
@@ -116,6 +69,15 @@ public class CrossValidationModule extends AbstractValidationModule {
 			if(Global.VERBOSE) System.out.print("Computing coocurrence scores...");
 			Set<ValidatedDomain> validatedDomains = CoocScoringModule.compute(Global.STATS_PTPT_PATH, Global.R_RESULTS_PTPT_PATH);
 			if(Global.VERBOSE) System.out.println("done.");
+			//Remove tous les validatedDomains deja certifies
+			Set<ValidatedDomain> validatedDomainsToDelete = new HashSet<ValidatedDomain>();
+			for(ValidatedDomain v : validatedDomains) {
+				if(mapIdPutativeDomain.get(v.getIdentifierValidatedDomain()).hasBeenCertified()) {
+					validatedDomainsToDelete.add(v);
+				}
+			}
+			validatedDomains.removeAll(validatedDomainsToDelete);
+			//Garde le validated domain avec la meilleur p-valeur uniquement
 			if(Global.KEEPONLYBESTPVALUE) {
 				Map<String,ValidatedDomain> keepBestPvalue = new HashMap<String, ValidatedDomain>();
 				ValidatedDomain tmpVD;
@@ -155,13 +117,15 @@ public class CrossValidationModule extends AbstractValidationModule {
 				for(BlastHit bh : mapIdPutativeDomain.get(vd.getIdentifierValidatingDomain()).getBlastHits()) {
 					allowedProteins.add(bh.getSubjectName()+"_"+bh.getSubjectSpecies());
 				}
+				mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()).setHasBeenCertified(true);
 				nbPrinted = FastaPrinter.getInstance().printFasta(mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()), allowedProteins);
-				ConservationStatsPrinter.getInstance("CrossValidationConservation.dat").addEntry(nbPrinted-1, mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()).getBlastHits().size());
+				ConservationStatsPrinter.getInstance("CrossValidationConservation.dat").addEntry(nbPrinted, mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()).getBlastHits().size());
 				domPrinted++;
 				if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.print("\r> "+domPrinted);
 			}
 			ConservationStatsPrinter.getInstance("CrossValidationConservation.dat").close();
-			if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.println();
+			if(Global.VERBOSE && !Global.DYNAMIC_DISPLAY) System.out.print("> "+domPrinted);
+			if(Global.VERBOSE) System.out.println();
 			if(Global.VERBOSE) System.out.println("Printing done.");
 
 			//Step 7: Estimer le fdr
@@ -217,8 +181,8 @@ public class CrossValidationModule extends AbstractValidationModule {
 				for(ValidatedDomain v : validatedDomains) {
 					vDomains.add(v.getIdentifierValidatedDomain());
 				}
-				//currentCertification = vDomains.size();
-				currentCertification = validatedDomains.size();
+				if(Global.KEEPONLYBESTPVALUE) currentCertification = vDomains.size();
+				else currentCertification = validatedDomains.size();
 			}
 			
 			totalCertification += currentCertification;
