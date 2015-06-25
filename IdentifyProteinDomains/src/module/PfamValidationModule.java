@@ -118,8 +118,8 @@ public class PfamValidationModule extends AbstractValidationModule {
 			int domPrinted = 0;
 			int nbPrinted;
 			for(ValidatedDomain vd : validatedDomains) {
-				mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()).setHasBeenCertified(true);
-				nbPrinted = FastaPrinter.getInstance().printFasta(mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()), mapIdPfam.get(vd.getIdentifierValidatingDomain()).getAllProteinNames());
+				mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()).certify();
+				nbPrinted = FastaPrinter.getInstance().printFasta(mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()), mapIdPfam.get(vd.getIdentifierValidatingDomain()).getAllProteinNames(),"P");
 				ConservationStatsPrinter.getInstance("PfamValidationConservation.dat").addEntry(nbPrinted, mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()).getBlastHits().size()); //-1 pour la sequence de Plasmodium
 				domPrinted++;
 				if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.print("\r> "+domPrinted);
@@ -130,13 +130,13 @@ public class PfamValidationModule extends AbstractValidationModule {
 			if(Global.VERBOSE) System.out.println("Printing done.");
 
 			//Step 7: Estimer le fdr
-			if(Global.VERBOSE) System.out.println("Computing FDR...");
-			estimateFDR(putativeDomainsByProt, pfamFamilies, validatedDomains.size());
+			if(Global.VERBOSE && Global.COMPUTE_FDR) System.out.println("Computing FDR...");
+			if(Global.COMPUTE_FDR) estimateFDR(putativeDomainsByProt, pfamFamilies, validatedDomains.size());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-
+	
 	private double estimateFDR(final Map<String,Set<PutativeDomain>> putativeDomainsByProt, final Set<PfamFamily> pfamFamilies, int nbCertificationObtained) throws Exception {
 		double totalCertification = 0;
 		int max=Global.FDR_NB_REPEATS,percent=0;
@@ -149,7 +149,7 @@ public class PfamValidationModule extends AbstractValidationModule {
 			currentStartTime = System.currentTimeMillis();
 
 			//Step 1: Shuffle les putative domains
-			Map<String,Set<PutativeDomain>> putativeDomainsByProtShuffled = PutativeShuffler.getInstance().shuffle(putativeDomainsByProt);
+			Map<String,Set<PutativeDomain>> putativeDomainsByProtShuffled = PutativeShuffler.getInstance().shuffle(tools.Collection.clonePutativeDomains(putativeDomainsByProt));
 
 			//Step 2: Genere tous les couples Pfam-PutativeDomain et envoie les info au StatsPrinter
 			boolean atLeastOneEntry = false;

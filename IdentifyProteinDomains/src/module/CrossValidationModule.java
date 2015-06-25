@@ -117,8 +117,8 @@ public class CrossValidationModule extends AbstractValidationModule {
 				for(BlastHit bh : mapIdPutativeDomain.get(vd.getIdentifierValidatingDomain()).getBlastHits()) {
 					allowedProteins.add(bh.getSubjectName()+"_"+bh.getSubjectSpecies());
 				}
-				mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()).setHasBeenCertified(true);
-				nbPrinted = FastaPrinter.getInstance().printFasta(mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()), allowedProteins);
+				mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()).certify();
+				nbPrinted = FastaPrinter.getInstance().printFasta(mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()), allowedProteins, "C");
 				ConservationStatsPrinter.getInstance("CrossValidationConservation.dat").addEntry(nbPrinted, mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()).getBlastHits().size());
 				domPrinted++;
 				if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.print("\r> "+domPrinted);
@@ -129,8 +129,8 @@ public class CrossValidationModule extends AbstractValidationModule {
 			if(Global.VERBOSE) System.out.println("Printing done.");
 
 			//Step 7: Estimer le fdr
-			if(Global.VERBOSE) System.out.println("Computing FDR...");
-			estimateFDR(putativeDomainsByProt, validatedDomains.size());
+			if(Global.VERBOSE && Global.COMPUTE_FDR) System.out.println("Computing FDR...");
+			if(Global.COMPUTE_FDR) estimateFDR(putativeDomainsByProt, validatedDomains.size());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -148,7 +148,7 @@ public class CrossValidationModule extends AbstractValidationModule {
 			currentStartTime = System.currentTimeMillis();
 
 			//Step 1: Shuffle les putative domains
-			Map<String,Set<PutativeDomain>> putativeDomainsByProtShuffled = PutativeShuffler.getInstance().shuffle(putativeDomainsByProt);
+			Map<String,Set<PutativeDomain>> putativeDomainsByProtShuffled = PutativeShuffler.getInstance().shuffle(Collection.clonePutativeDomains(putativeDomainsByProt));
 
 			//Step 2: Genere tous les couples Pfam-PutativeDomain et envoie les info au StatsPrinter
 			boolean atLeastOneEntry = false;

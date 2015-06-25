@@ -7,7 +7,8 @@ package model;
  * @author christophe
  *
  */
-public class BlastHit {
+public class BlastHit implements Cloneable {
+	
 	private String queryName;
 	private String querySpecies;
 	private String subjectName;
@@ -177,6 +178,11 @@ public class BlastHit {
 						queryName, querySpecies, subjectName, subjectSpecies,
 						identity, alignmentLength, qStart,
 						qEnd, sStart, sEnd, eValue);
+	}
+	
+	public Object clone() {
+		BlastHit ret = new BlastHit(this.queryName, this.querySpecies, this.subjectName, this.subjectSpecies, this.identity, this.alignmentLength, this.qStart, this.qEnd, this.sStart, this.sEnd, this.eValue);
+		return ret;
 	}
 	
 }

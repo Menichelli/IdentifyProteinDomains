@@ -20,7 +20,7 @@ public class LowComplexityFilter implements Ifilter {
 	private static Ifilter instance;
 	
 	private final static int WINDOWSIZE = 20;
-	private final static int STEPSIZE = 3;
+	private final static int STEPSIZE = 1;
 	
 	private LowComplexityFilter() {}
 	

@@ -10,7 +10,6 @@ import tools.parser.BlastResultsParser;
 import tools.parser.ProteomeParser;
 import model.BlastHit;
 import model.PutativeDomain;
-import module.AbstractValidationModule;
 import module.CrossValidationModule;
 import module.PfamValidationModule;
 import global.Global;
@@ -94,7 +93,7 @@ public class Main {
 		//Step 2: Run PfamValidation
 		if(Global.VERBOSE) System.out.println("***Starting PfamValidationModule...");
 		if(Global.VERBOSE) printState(putativeDomainsByProt);
-		AbstractValidationModule m1 = new PfamValidationModule(putativeDomainsByProt,mapIdPutativeDomain);
+		PfamValidationModule m1 = new PfamValidationModule(putativeDomainsByProt,mapIdPutativeDomain);
 		m1.start();
 		m1.join();
 		if(Global.VERBOSE) printState(putativeDomainsByProt);
@@ -103,7 +102,7 @@ public class Main {
 		//Step 3: Run CrossValidation
 		if(Global.VERBOSE) System.out.println("***Starting CrossValidationModule...");
 		if(Global.VERBOSE) printState(putativeDomainsByProt);
-		AbstractValidationModule m2 = new CrossValidationModule(putativeDomainsByProt,mapIdPutativeDomain);
+		CrossValidationModule m2 = new CrossValidationModule(putativeDomainsByProt,mapIdPutativeDomain);
 		m2.start();
 		m2.join();
 		if(Global.VERBOSE) printState(putativeDomainsByProt);

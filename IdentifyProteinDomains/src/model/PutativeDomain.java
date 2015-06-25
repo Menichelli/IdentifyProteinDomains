@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class PutativeDomain {
+public class PutativeDomain implements Cloneable {
 
 	private String queryName;
 	private String querySpecies;
@@ -171,8 +171,9 @@ public class PutativeDomain {
 		return ret;
 	}
 	
-	public void setHasBeenCertified(boolean isCertified) throws Exception {
-		this.hasBeenCertified = isCertified;
+	public void certify() throws Exception {
+		if(this.hasBeenCertified) throw new Exception("Already certified!");
+		this.hasBeenCertified = true;
 	}
 	
 	public boolean hasBeenCertified() {
@@ -189,5 +190,15 @@ public class PutativeDomain {
 				"PutativeDomain [queryName=%s, querySpecies=%s, hitStart=%s, hitEnd=%s, nbHits=%d]",
 				queryName, querySpecies, domainStart, domainEnd, getHitsCoveringResidue(getBestPosition()).size());
 	}
-
+	
+	public Object clone() {
+		PutativeDomain ret = new PutativeDomain(this.queryName, this.querySpecies, this.domainStart, this.domainEnd);
+		
+		for(BlastHit bh : this.blastHits) {
+			ret.addBlastHit((BlastHit)bh.clone());
+		}
+		
+		return ret;
+	}
+	
 }
