@@ -47,7 +47,7 @@ public class HitsGathering {
 //		System.out.println(")");
 //		//==debug
 		
-		//cut in putative domains
+		//cut in putative domain
 		Set<PutativeDomain> pDomains = new HashSet<PutativeDomain>();
 		PutativeDomain currentPutativeDomain = null;
 		for(int index = 0; index < coverage.length; index++) {
@@ -87,7 +87,7 @@ public class HitsGathering {
 		//low complexity filter
 		pDomains = FilterFacade.applyFilter(LowComplexityFilter.class, pDomains);
 		
-		//too short hits filter
+		//les hits trop courts
 		pDomains = FilterFacade.applyFilter(TooShortHitsFilter.class, pDomains);
 		pDomains = FilterFacade.applyFilter(TooFewHitsFilter.class, pDomains);
 		

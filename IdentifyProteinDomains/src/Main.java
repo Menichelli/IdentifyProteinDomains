@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import tools.HitsGathering;
 import tools.parser.BlastResultsParser;
 import tools.parser.ProteomeParser;
+import tools.printer.FastaPrinter;
 import model.BlastHit;
 import model.PutativeDomain;
 import module.CrossValidationModule;
@@ -84,7 +85,53 @@ public class Main {
 				mapIdPutativeDomain.put(pd.getIdentifier(), pd);
 			}
 		}
+		
+		if(Global.PRINTPUTATIVESFASTA) {
+			if(Global.VERBOSE) System.out.println("Printing unclean putatives fasta...");
+			Set<String> initSet = new HashSet<String>();
+			for(String s : putativeDomainsByProt.keySet()) {
+				for(PutativeDomain pd : putativeDomainsByProt.get(s)) {
+					for(BlastHit bh : pd.getBlastHits()) {
+						initSet.add(bh.getSubjectName()+"_"+bh.getSubjectSpecies());
+					}
+				}
+			}
+			FastaPrinter.getInstance().init(initSet);
+			
+			for(String s : putativeDomainsByProt.keySet()) {
+				for(PutativeDomain pd : putativeDomainsByProt.get(s)) {
+					FastaPrinter.getInstance().printFasta(pd, null, "PUTATIVE", "./fasta_putative");
+				}
+			}
+			FastaPrinter.close();
+		}
+		
 
+		//----------------------------------------------------------------------------------//
+		//----------------------------------------------------------------------------------//
+		//----------------------------------------------------------------------------------//
+
+//		System.err.println("ORIGINAL");
+//		System.err.println("size: "+putativeDomainsByProt.keySet().size());
+//		int nbEl = 0;
+//		for(String s : putativeDomainsByProt.keySet()) {
+//			for(PutativeDomain p : putativeDomainsByProt.get(s)) {
+//				nbEl += p.getBlastHits().size();
+//			}
+//		}
+//		System.err.println("nbEl: "+nbEl);
+//		
+//		System.err.println("\nCLONE");
+//		Map<String, Set<PutativeDomain>> cloned = Collection.clonePutativeDomains(putativeDomainsByProt);
+//		System.err.println("size: "+cloned.keySet().size());
+//		int nbEl2 = 0;
+//		for(String s : cloned.keySet()) {
+//			for(PutativeDomain p : cloned.get(s)) {
+//				nbEl2 += p.getBlastHits().size();
+//			}
+//		}
+//		System.err.println("nbEl: "+nbEl2);
+		
 		//----------------------------------------------------------------------------------//
 		//----------------------------------------------------------------------------------//
 		//----------------------------------------------------------------------------------//

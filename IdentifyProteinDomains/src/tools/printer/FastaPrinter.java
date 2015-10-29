@@ -46,13 +46,17 @@ public class FastaPrinter {
 		FastaPrinter.proteins.putAll(RefProtParser.getProteinSequences(proteins));
 	}
 
-	public int printFasta(PutativeDomain domain, Set<String> allowedProteins, String prefix) throws Exception {
+	public int printFasta(PutativeDomain domain, Set<String> allowedProteins, String prefix, String dir) throws Exception {
 		int ret = 0;
 		
 		Set<BlastHit> hits = domain.getHitsCoveringResidue(domain.getBestPosition()); //all blast hits on this domain
 		Set<BlastHit> coocshits = new HashSet<BlastHit>(); //only hits found with coocs
 
 		for(BlastHit hit : hits) {
+			if(allowedProteins==null) {
+				coocshits.add(hit);
+				continue;
+			}
 			if(allowedProteins.contains(hit.getSubjectName()+"_"+hit.getSubjectSpecies())) {
 				coocshits.add(hit);
 			}
@@ -68,7 +72,7 @@ public class FastaPrinter {
 		boolean created = false;
 		int index = 0;
 		while(!created) {
-			f = new File(Global.FASTA_DIR+"/"+prefix+"."+domain.getFileIdentifier()+"."+index+++".fasta");
+			f = new File(dir+"/"+prefix+"."+domain.getFileIdentifier()+"."+index+++".fasta");
 			if(!f.exists()) {
 				f.createNewFile();
 				created = true;

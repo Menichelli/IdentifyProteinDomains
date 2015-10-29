@@ -28,9 +28,9 @@ public class Collection {
 	public static Map<String, Set<PutativeDomain>> clonePutativeDomains(Map<String, Set<PutativeDomain>> map) {
 		Map<String, Set<PutativeDomain>> ret = new HashMap<String, Set<PutativeDomain>>();
 		
-		Set<PutativeDomain> tmp = new HashSet<PutativeDomain>();
+		Set<PutativeDomain> tmp;
 		for(String key : map.keySet()) {
-			tmp.clear();
+			tmp = new HashSet<PutativeDomain>();
 			for(PutativeDomain val : map.get(key)) {
 				tmp.add((PutativeDomain)val.clone());
 			}

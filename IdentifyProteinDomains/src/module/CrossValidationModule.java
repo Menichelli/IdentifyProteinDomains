@@ -118,7 +118,7 @@ public class CrossValidationModule extends AbstractValidationModule {
 					allowedProteins.add(bh.getSubjectName()+"_"+bh.getSubjectSpecies());
 				}
 				mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()).certify();
-				nbPrinted = FastaPrinter.getInstance().printFasta(mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()), allowedProteins, "C");
+				nbPrinted = FastaPrinter.getInstance().printFasta(mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()), allowedProteins, "C",Global.FASTA_DIR);
 				ConservationStatsPrinter.getInstance("CrossValidationConservation.dat").addEntry(nbPrinted, mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()).getBlastHits().size());
 				domPrinted++;
 				if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.print("\r> "+domPrinted);
@@ -166,7 +166,7 @@ public class CrossValidationModule extends AbstractValidationModule {
 					int nbProtIntersec = Collection.intersectionSize(protsCoveringThePutativeDomain1, protsCoveringThePutativeDomain2);
 
 					if(nbProtIntersec >= Global.NB_SEQ_INTERSECT) {
-						atLeastOneEntry|=true;
+						atLeastOneEntry=true;
 						StatsPrinter.getInstance(Global.FDR_TMP_PATH+"1").addEntry(putativeDomainIdentifier1, putativeDomainIdentifier2, nbProtPutativeDomain1, nbProtPutativeDomain2, nbProtIntersec);
 					}
 				}

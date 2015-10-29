@@ -119,7 +119,7 @@ public class PfamValidationModule extends AbstractValidationModule {
 			int nbPrinted;
 			for(ValidatedDomain vd : validatedDomains) {
 				mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()).certify();
-				nbPrinted = FastaPrinter.getInstance().printFasta(mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()), mapIdPfam.get(vd.getIdentifierValidatingDomain()).getAllProteinNames(),"P");
+				nbPrinted = FastaPrinter.getInstance().printFasta(mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()), mapIdPfam.get(vd.getIdentifierValidatingDomain()).getAllProteinNames(),"P",Global.FASTA_DIR);
 				ConservationStatsPrinter.getInstance("PfamValidationConservation.dat").addEntry(nbPrinted, mapIdPutativeDomain.get(vd.getIdentifierValidatedDomain()).getBlastHits().size()); //-1 pour la sequence de Plasmodium
 				domPrinted++;
 				if(Global.VERBOSE && Global.DYNAMIC_DISPLAY) System.out.print("\r> "+domPrinted);
@@ -162,15 +162,14 @@ public class PfamValidationModule extends AbstractValidationModule {
 					Set<String> protsCoveringThePutativeDomain = couple.getPutative().getProteinsCoveringResidue(couple.getPutative().getBestPosition());
 					int nbProtPutativeDomain = protsCoveringThePutativeDomain.size();
 					int nbProtIntersec = Collection.intersectionSize(couple.getPfam().getAllProteinNames(), protsCoveringThePutativeDomain);
-
+					
 					if(nbProtIntersec >= Global.NB_SEQ_INTERSECT) {
-						atLeastOneEntry|=true;
+						atLeastOneEntry=true;
 						StatsPrinter.getInstance(Global.FDR_TMP_PATH+"1").addEntry(pfamFamilyName, putativeDomainIdentifier, nbProtPfam, nbProtPutativeDomain, nbProtIntersec);
 					}
 				}
 			}
 			StatsPrinter.getInstance(Global.FDR_TMP_PATH+"1").close();
-
 			int currentCertification = 0;
 			if(atLeastOneEntry) {
 				//Step 3: run R

@@ -26,6 +26,7 @@ public class Global {
 	public static boolean KEEPONLYBESTPVALUE;
 	public static Proteome PROTEOME_AIMED;
 	public static boolean ONEMODELPERDOMAIN;
+	public static boolean PRINTPUTATIVESFASTA;
 	//BlastResultsParser
 	public static String BLAST_RESULTS_PATH;
 	//ProteomeParser
@@ -69,6 +70,7 @@ public class Global {
 				Global.COMPUTE_FDR = Boolean.parseBoolean(props.getProperty("compute_fdr"));
 				Global.KEEPONLYBESTPVALUE = Boolean.parseBoolean(props.getProperty("keep_only_best_Pvalue"));
 				Global.ONEMODELPERDOMAIN = Boolean.parseBoolean(props.getProperty("one_model_per_domain"));
+				Global.PRINTPUTATIVESFASTA = Boolean.parseBoolean(props.getProperty("print_putatives_fasta"));
 				Global.R_SCRIPT_PATH = props.getProperty("r_script_path");
 				if(!new File(Global.R_SCRIPT_PATH).exists()) throw new IOException("R script file not found.");
 				Global.BLAST_RESULTS_PATH = props.getProperty("blast_results_path");

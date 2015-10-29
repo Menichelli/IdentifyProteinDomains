@@ -11,7 +11,7 @@ import model.PutativeDomain;
 public class PutativeShuffler {
 
 	private static PutativeShuffler instance;
-	private Random random;
+	private static Random random;
 
 	private PutativeShuffler() {
 		random = new Random();
